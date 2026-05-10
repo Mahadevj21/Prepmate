@@ -1,0 +1,31 @@
+# --- Secrets & local config (never commit) ---
+prepmate-backend/src/main/resources/application.properties
+*.env
+.env
+.env.*
+
+# --- Doc you keep local only ---
+prepmate-backend/PROJECT_OVERVIEW.md
+
+# --- Maven / Java build ---
+prepmate-backend/target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+logs/
