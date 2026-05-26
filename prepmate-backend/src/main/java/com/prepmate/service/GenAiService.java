@@ -19,7 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Google Gemini API client with response caching and key rotation on quota errors.
+ * Google Gemini API client with response caching and key rotation on quota
+ * errors.
  */
 @Service
 public class GenAiService {
@@ -71,6 +72,8 @@ public class GenAiService {
         }
     }
 
+    private int currentKeyIndex = 0;
+
     public String ask(String prompt) {
         if (apiKeys.isEmpty()) {
             return error("No Gemini API key configured. Add gemini.api.key in application.properties.");
@@ -82,7 +85,14 @@ public class GenAiService {
         }
 
         String lastError = "AI request failed.";
-        for (int keyIndex = 0; keyIndex < apiKeys.size(); keyIndex++) {
+
+        // Try keys starting from the current known working index
+        for (int i = 0; i < apiKeys.size(); i++) {
+            int keyIndex;
+            synchronized (this) {
+                keyIndex = currentKeyIndex % apiKeys.size();
+            }
+
             String apiKey = apiKeys.get(keyIndex);
             String result = callGeminiWithRetries(prompt, apiKey, 2);
 
@@ -94,16 +104,26 @@ public class GenAiService {
             lastError = result.substring(ERROR_PREFIX.length());
             boolean quotaExhausted = lastError.toLowerCase().contains("quota")
                     || lastError.toLowerCase().contains("rate limit")
-                    || lastError.toLowerCase().contains("resource_exhausted");
+                    || lastError.toLowerCase().contains("resource_exhausted")
+                    || lastError.toLowerCase().contains("429");
 
-            if (!quotaExhausted || keyIndex == apiKeys.size() - 1) {
-                return result;
+            if (quotaExhausted) {
+                synchronized (this) {
+                    // Only move if we are still on the same key that failed
+                    if (currentKeyIndex % apiKeys.size() == keyIndex) {
+                        currentKeyIndex++;
+                        System.err.println("[AI] Key " + (keyIndex + 1) + " exhausted. Rotating to "
+                                + ((currentKeyIndex % apiKeys.size()) + 1));
+                    }
+                }
+                continue; // Try the next key
             }
 
-            System.err.println("[AI] Key " + (keyIndex + 1) + " quota issue, trying next key...");
+            // If it's a non-quota error (e.g. 400 Bad Request), stop immediately
+            return result;
         }
 
-        return error(lastError);
+        return error("All API keys exhausted or failing: " + lastError);
     }
 
     private String callGeminiWithRetries(String prompt, String apiKey, int maxAttempts) {
@@ -263,7 +283,7 @@ public class GenAiService {
     }
 
     private record HttpResult(boolean success, String text, String errorMessage,
-                              boolean retryable, long retryAfterSeconds) {
+            boolean retryable, long retryAfterSeconds) {
 
         static HttpResult ok(String text) {
             return new HttpResult(true, text, null, false, 0);
