@@ -1,6 +1,6 @@
 package com.prepmate.controller;
 
-import com.prepmate.service.GeminiService;
+import com.prepmate.service.GenAiService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test")
 public class TestController {
 
-    private final GeminiService geminiService;
+    private final GenAiService genAiService;
 
-    public TestController(GeminiService geminiService) {
-        this.geminiService = geminiService;
+    public TestController(GenAiService genAiService) {
+        this.genAiService = genAiService;
     }
 
-    @GetMapping("/gemini")
-    public String gemini(@RequestParam String prompt) {
-        return geminiService.ask(prompt);
+    @GetMapping("/ai")
+    public String ai(@RequestParam String prompt) {
+        return genAiService.ask(prompt);
     }
 }

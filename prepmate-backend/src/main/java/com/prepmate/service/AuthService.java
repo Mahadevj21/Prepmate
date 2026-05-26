@@ -45,7 +45,10 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getEmail());
         return Map.of(
                 "token", token,
-                "email", user.getEmail()
+                "email", user.getEmail(),
+                "role", user.getRole() != null ? user.getRole() : "USER",
+                "name", user.getName() != null ? user.getName() : "",
+                "userId", String.valueOf(user.getId())
         );
     }
 }

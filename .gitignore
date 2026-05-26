@@ -1,5 +1,6 @@
 # --- Secrets & local config (never commit) ---
 prepmate-backend/src/main/resources/application.properties
+prepmate-backend/src/main/resources/application-dev.properties
 *.env
 .env
 .env.*
@@ -29,3 +30,6 @@ Thumbs.db
 # --- Logs ---
 *.log
 logs/
+
+# --- Local tooling (portable Maven, etc.) ---
+.tools/

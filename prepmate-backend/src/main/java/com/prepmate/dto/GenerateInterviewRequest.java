@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 public class GenerateInterviewRequest {
 
-    @NotBlank
     private String topic;
 
     @NotBlank
@@ -13,6 +12,9 @@ public class GenerateInterviewRequest {
 
     @NotNull
     private Long userId;
+
+    private String mode; // "PRACTICE" or "MOCK"
+    private String jobDescription;
 
     public String getTopic() {
         return topic;
@@ -36,5 +38,21 @@ public class GenerateInterviewRequest {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getJobDescription() {
+        return jobDescription;
+    }
+
+    public void setJobDescription(String jobDescription) {
+        this.jobDescription = jobDescription;
     }
 }
