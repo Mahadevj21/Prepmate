@@ -7,20 +7,36 @@ function buildHeaders(token) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options)
-  const bodyText = await response.text()
-  let body
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout
+
   try {
-    body = bodyText ? JSON.parse(bodyText) : null
-  } catch {
-    body = bodyText
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+
+    const bodyText = await response.text()
+    let body
+    try {
+      body = bodyText ? JSON.parse(bodyText) : null
+    } catch {
+      body = bodyText
+    }
+
+    if (!response.ok) {
+      const fallback = `Request failed (${response.status})`
+      if (typeof body === 'string' && body.trim()) throw new Error(body)
+      throw new Error(body?.message ?? fallback)
+    }
+    return body
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Server took too long to respond. It might be waking up. Please try again in a moment.')
+    }
+    throw err
   }
-  if (!response.ok) {
-    const fallback = `Request failed (${response.status})`
-    if (typeof body === 'string' && body.trim()) throw new Error(body)
-    throw new Error(body?.message ?? fallback)
-  }
-  return body
 }
 
 export function getApiBaseUrl() { return API_BASE_URL }

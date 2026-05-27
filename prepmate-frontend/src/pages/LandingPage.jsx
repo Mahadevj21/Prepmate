@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Sparkles, ArrowRight, Mic, BarChart2, Clock,
@@ -7,10 +7,11 @@ import {
 import { Navbar } from '../components/layout/Navbar'
 import { Button } from '../components/ui/Button'
 import { useAuth } from '../contexts/AuthContext'
-import { loginUser } from '../api'
+import { loginUser, getApiBaseUrl } from '../api'
 import { Alert } from '../components/ui/Alert'
 
 const FEATURES = [
+  // ... (rest of features)
   {
     icon: Brain,
     title: 'AI-Powered Questions',
@@ -49,6 +50,13 @@ export function LandingPage() {
   const { login } = useAuth()
   const [tryingFree, setTryingFree] = useState(false)
   const [trialError, setTrialError] = useState('')
+
+  // Wake up the backend as soon as the landing page loads
+  useEffect(() => {
+    fetch(`${getApiBaseUrl()}/api/test/ping`).catch(() => {
+      // Ignore errors, we just want to trigger the wake-up
+    })
+  }, [])
 
   const handleTryForFree = async () => {
     setTryingFree(true)

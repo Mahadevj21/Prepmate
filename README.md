@@ -6,6 +6,7 @@ PrepMate is a state-of-the-art **Generative AI** platform designed to bridge the
 
 ---
 
+
 ## 🏗️ System Architecture (LLM Stack)
 
 ```mermaid
@@ -46,7 +47,7 @@ To bypass the strict free-tier rate limits of AI providers, PrepMate implements 
 ### Environment Configuration (Render/Railway)
 | Key | Logic |
 |:--- |:--- |
-| `SPRING_DATASOURCE_URL` | Use **Supabase Session Pooler** URL (Port 6543) for IPv4 compatibility. |
+| `SPRING_DATASOURCE_URL` | Use **Supabase Session Pooler** URL (Port 5432) for IPv4 compatibility. |
 | `JAVA_OPTS` | Must include `-Djava.net.preferIPv4Stack=true` for Render/Supabase bridge. |
 | `JWT_SECRET` | Required 32+ character string for HMAC-SHA256 signature. |
 

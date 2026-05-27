@@ -20,4 +20,9 @@ public class TestController {
     public String ai(@RequestParam String prompt) {
         return genAiService.ask(prompt);
     }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "pong";
+    }
 }
