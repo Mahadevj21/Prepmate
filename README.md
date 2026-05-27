@@ -24,7 +24,7 @@ graph TD
 ## ✨ Core Features
 
 ### 🎯 Intelligent Roadmap Generation
-Enter your career goal (e.g., "Full Stack Developer in 3 months"), and PrepMate generates a structured, week-by-week learning path using Gemini 1.5 Flash.
+Enter your career goal (e.g., "Full Stack Developer in 3 months"), and PrepMate generates a structured, week-by-week learning path using Gemini  Flash.
 
 ### 🎙️ AI Technical Interviews
 Simulate real interviews for any tech stack (Java, Python, React, etc.). The AI asks deep technical questions, evaluates your spoken/written answers, and provides a "Score" with improvement tips.
