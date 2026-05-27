@@ -1,11 +1,12 @@
-# 🚀 PrepMate: The AI-Powered Career Accelerator
+# 🚀 PrepMate: GenAI-Powered Career Accelerator
 
-PrepMate is a professional-grade, full-stack platform designed to bridge the gap between learning and employment. It utilizes state-of-the-art **Generative AI** to provide custom roadmaps and realistic technical interview simulations.
+PrepMate is a state-of-the-art **Generative AI** platform designed to bridge the gap between learning and employment. It utilizes **LLMs (Large Language Models)** to provide custom roadmaps and realistic technical interview simulations.
+
+### 🔗 [Live Demo (GenAI-Powered): prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 
 ---
-### 🔗 [Live Demo: prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture (LLM Stack)
 
 ```mermaid
 graph TD
@@ -23,7 +24,7 @@ graph TD
 ## ✨ Core Features
 
 ### 🎯 Intelligent Roadmap Generation
-Enter your career goal (e.g., "Full Stack Developer in 3 months"), and PrepMate generates a structured, week-by-week learning path using Gemini  Flash.
+Enter your career goal (e.g., "Full Stack Developer in 3 months"), and PrepMate generates a structured, week-by-week learning path using Gemini 1.5 Flash.
 
 ### 🎙️ AI Technical Interviews
 Simulate real interviews for any tech stack (Java, Python, React, etc.). The AI asks deep technical questions, evaluates your spoken/written answers, and provides a "Score" with improvement tips.
@@ -45,7 +46,7 @@ To bypass the strict free-tier rate limits of AI providers, PrepMate implements 
 ### Environment Configuration (Render/Railway)
 | Key | Logic |
 |:--- |:--- |
-| `SPRING_DATASOURCE_URL` | Use **Supabase Session Pooler** URL (Port 5432) for IPv4 compatibility. |
+| `SPRING_DATASOURCE_URL` | Use **Supabase Session Pooler** URL (Port 6543) for IPv4 compatibility. |
 | `JAVA_OPTS` | Must include `-Djava.net.preferIPv4Stack=true` for Render/Supabase bridge. |
 | `JWT_SECRET` | Required 32+ character string for HMAC-SHA256 signature. |
 
