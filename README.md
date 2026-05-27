@@ -1,81 +1,102 @@
-# Prepmate
+# 🚀 PrepMate: The AI-Powered Career Accelerator
 
-Full-stack PrepMate project:
-- `prepmate-backend`: Spring Boot API with JWT auth + Gemini integration
-- `prepmate-frontend`: React app for register/login, roadmap generation, interview generation, and answer evaluation
+PrepMate is a professional-grade, full-stack platform designed to bridge the gap between learning and employment. It utilizes state-of-the-art **Generative AI** to provide custom roadmaps and realistic technical interview simulations.
 
-## Project layout
+---
 
-| Path | Description |
-|------|-------------|
-| `prepmate-backend/` | Spring Boot 3 application (`com.prepmate`) |
-| `prepmate-frontend/` | Vite + React frontend client |
+## 🏗️ System Architecture
 
-## Requirements
-
-- **Java 17**
-- **Maven 3.8+**
-- **PostgreSQL** (local or remote)
-- **Node.js 20+**
-
-## Configuration
-
-Secrets are **not** committed. Use the template:
-
-1. Copy `prepmate-backend/src/main/resources/application.properties.example` to `application.properties` in the same folder.
-2. Set at least:
-   - `spring.datasource.*` — your database URL, user, password  
-   - `gemini.api.key` — [Google AI Studio](https://aistudio.google.com/apikey) API key  
-   - `jwt.secret` — long random string (used to sign JWTs; keep it private)
-
-Optional: `gemini.model` (default: `gemini-2.5-flash`). Avoid `gemini-2.0-flash` on free tier — its quota is often 0.
-
-## Run the backend API
-
-```bash
-cd prepmate-backend
-mvn spring-boot:run
+```mermaid
+graph TD
+    User((User)) -->|React SPA| Frontend[Vercel: React 19 + Vite]
+    Frontend -->|REST API + JWT| Backend[Render: Spring Boot 3]
+    Backend -->|SQL| DB[(Supabase: PostgreSQL)]
+    Backend -->|Sticky Rotation| Gemini{AI: Google Gemini}
+    Gemini -->|Key 1| G1[Quota A]
+    Gemini -->|Key 2| G2[Quota B]
+    Gemini -->|Key 3| G3[Quota C]
 ```
 
-Default port: **8080** (see `server.port` in your `application.properties`).
+---
 
-## Run the frontend
+## ✨ Core Features
 
-```bash
-cd prepmate-frontend
-cp .env.example .env
-npm install
-npm run dev
+### 🎯 Intelligent Roadmap Generation
+Enter your career goal (e.g., "Full Stack Developer in 3 months"), and PrepMate generates a structured, week-by-week learning path using Gemini 1.5 Flash.
+
+### 🎙️ AI Technical Interviews
+Simulate real interviews for any tech stack (Java, Python, React, etc.). The AI asks deep technical questions, evaluates your spoken/written answers, and provides a "Score" with improvement tips.
+
+### � Sticky Key Rotation (Proprietary Logic)
+To bypass the strict free-tier rate limits of AI providers, PrepMate implements a **Sticky Key Rotation** algorithm:
+- Tracks exhaustion status for up to 3 API keys.
+- Automatically fails over to the next available key on `429 (Too Many Requests)` errors.
+- "Sticky" behavior: stays on a working key until it hits a limit, maximizing efficiency.
+
+### 🔐 Secure-by-Design
+- **JWT Authentication**: Stateless security with HttpOnly-compatible headers.
+- **CORS Protection**: Strict origin-server mapping for production.
+
+---
+
+## 🌐 Production Deployment Summary
+
+### Environment Configuration (Render/Railway)
+| Key | Logic |
+|:--- |:--- |
+| `SPRING_DATASOURCE_URL` | Use **Supabase Session Pooler** URL (Port 6543) for IPv4 compatibility. |
+| `JAVA_OPTS` | Must include `-Djava.net.preferIPv4Stack=true` for Render/Supabase bridge. |
+| `JWT_SECRET` | Required 32+ character string for HMAC-SHA256 signature. |
+
+---
+
+## 📬 Detailed API Reference
+
+### Authentication
+`POST /api/auth/register`
+```json
+{
+  "email": "user@example.com",
+  "password": "securePassword123",
+  "name": "Jane Doe"
+}
 ```
 
-Frontend default URL: `http://localhost:5173`  
-It connects to backend using `VITE_API_BASE_URL` (default `http://localhost:8080`).
-
-## API (summary)
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/auth/register` | No | Register user |
-| POST | `/api/auth/login` | No | Login; returns JWT + email |
-| GET | `/api/test/gemini?prompt=...` | No | Smoke-test Gemini |
-| POST | `/api/roadmap/generate` | **Yes** | Body: `goal`, `userId` — AI roadmap |
-| POST | `/api/interview/generate` | **Yes** | Body: `topic`, `difficulty`, `userId` |
-| POST | `/api/interview/evaluate` | **Yes** | Body: `questionId`, `userAnswer` |
-
-Protected routes expect:
-
-```http
-Authorization: Bearer <token from login>
+`POST /api/auth/login`
+```json
+// Returns:
+{
+  "token": "eyJhbGciOiJIUzI1Ni...",
+  "status": "success"
+}
 ```
 
-## Stack
+### AI roadmap
+`POST /api/roadmap/generate` (Requires JWT)
+- **Input**: `{ "goal": "DevOps Engineer" }`
+- **Output**: Detailed JSON roadmap object.
 
-- Spring Boot 3, Spring Data JPA, PostgreSQL  
-- Spring Security + JWT (JJWT)  
-- Lombok, Jakarta Validation  
-- Gemini via `java.net.http.HttpClient` + Jackson  
-- React 19 + Vite frontend
+---
 
-## Repository
+## �️ Troubleshooting (Common Deploys)
 
-Source: [github.com/Mahadevj21/Prepmate](https://github.com/Mahadevj21/Prepmate)
+| Issue | Resolution |
+|:--- |:--- |
+| **Status 1 / Dialect Error** | Ensure `SPRING_DATASOURCE_URL` starts with `jdbc:postgresql://` and ends with `?sslmode=require`. |
+| **Network Unreachable** | Add `-Djava.net.preferIPv4Stack=true` to `JAVA_OPTS`. |
+| **Port Scan Timeout** | Add `SPRING_MAIN_LAZY_INITIALIZATION=true` to speed up Spring Boot startup. |
+| **JWT Weak Key** | Increase `JWT_SECRET` to at least 32 characters. |
+
+---
+
+## 🤝 Contributing
+1. Fork the repo.
+2. Create your branch (`git checkout -b feature/AmazingFeature`).
+3. Commit changes (`git commit -m 'Add AmazingFeature'`).
+4. Push to branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
+
+---
+
+## 🛡️ License
+Copyright © 2026 Mahadev J. Distributed under the MIT License.
