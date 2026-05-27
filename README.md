@@ -3,6 +3,7 @@
 PrepMate is a professional-grade, full-stack platform designed to bridge the gap between learning and employment. It utilizes state-of-the-art **Generative AI** to provide custom roadmaps and realistic technical interview simulations.
 
 ---
+### 🔗 [Live Demo: prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 
 ## 🏗️ System Architecture
 
