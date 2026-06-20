@@ -1,6 +1,6 @@
 # 🚀 PrepMate: GenAI-Powered Career Accelerator
 
-PrepMate is a state-of-the-art **Generative AI** platform designed to bridge the gap between learning and employment. It utilizes **LLMs (Large Language Models)** to provide custom roadmaps and realistic technical interview simulations.
+PrepMate is a **Generative AI** platform designed to bridge the gap between learning and employment. It utilizes **LLMs (Large Language Models)** to provide custom roadmaps and realistic technical interview simulations.
 
 ### 🔗 [Live Demo (GenAI-Powered): prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 
