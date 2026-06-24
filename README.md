@@ -4,6 +4,18 @@ PrepMate is a full-stack web app for people preparing for technical job intervie
 
 Live frontend: [prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 
+## Architecture
+
+![Architecture diagram](docs/images/architecture.png)
+
+The diagram shows the complete request flow:
+
+- The **React frontend** (Vite + React 19, Tailwind CSS 4) communicates with the backend over HTTPS using JWT Bearer tokens.
+- The **Spring Boot backend** (Java 17) handles auth, roadmap generation, and interview session management. Spring Security validates JWTs on every protected request.
+- **GenAiService** (the API Key Rotation Manager) wraps all Gemini calls. It holds up to three API keys and switches to the next key only on quota-class errors, keeping the current good key sticky. Successful responses are stored in an in-memory `ResponseCache` (60-minute TTL, 500-entry cap) to avoid duplicate Gemini calls.
+- **Gemini API** is called directly over HTTP using `java.net.http.HttpClient` — no SDK dependency.
+- **PostgreSQL** stores users, roadmaps, interview sessions, and questions via Spring Data JPA.
+
 ## Tech stack
 
 **Backend** (`prepmate-backend/`, Java 17)
@@ -108,18 +120,6 @@ npm run dev
 ```
 
 Default API base URL in `.env.example` is `http://localhost:8080`. The landing page calls `GET /api/test/ping` on load to wake a cold backend.
-
-## Architecture
-
-![Architecture diagram](docs/images/architecture.png)
-
-The diagram shows the complete request flow:
-
-- The **React frontend** (Vite + React 19, Tailwind CSS 4) communicates with the backend over HTTPS using JWT Bearer tokens.
-- The **Spring Boot backend** (Java 17) handles auth, roadmap generation, and interview session management. Spring Security validates JWTs on every protected request.
-- **GenAiService** (the API Key Rotation Manager) wraps all Gemini calls. It holds up to three API keys and switches to the next key only on quota-class errors, keeping the current good key sticky. Successful responses are stored in an in-memory `ResponseCache` (60-minute TTL, 500-entry cap) to avoid duplicate Gemini calls.
-- **Gemini API** is called directly over HTTP using `java.net.http.HttpClient` — no SDK dependency.
-- **PostgreSQL** stores users, roadmaps, interview sessions, and questions via Spring Data JPA.
 
 ## Architecture decisions
 
