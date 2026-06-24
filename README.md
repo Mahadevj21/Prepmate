@@ -3,6 +3,10 @@
 PrepMate is a full-stack web app for people preparing for technical job interviews. Users register, generate AI-written learning roadmaps for a stated career goal, run practice or mock interview sessions with Gemini-generated questions, submit answers for scored feedback, and review past sessions. The React frontend talks to a Spring Boot API; PostgreSQL stores users, roadmaps, sessions, and questions.
 
 Live frontend: [prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
+This project is hosted on free-tier services (Render/Supabase).
+The first request may take 30–60 seconds if services are waking from inactivity.
+
+
 
 ## Architecture
 
