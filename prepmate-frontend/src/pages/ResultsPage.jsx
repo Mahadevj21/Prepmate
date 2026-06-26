@@ -1,23 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  BarChart2, CheckCircle, XCircle, Lightbulb,
-  TrendingUp, Mic, ArrowRight, ChevronDown, ChevronUp, Loader2
-} from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { getSessionDetails, getInterviewHistory } from '../api'
-import { Button } from '../components/ui/Button'
-import { Badge } from '../components/ui/Badge'
-import { Alert } from '../components/ui/Alert'
-
-
 
 /* ---------- Evaluation Result Card ---------- */
-function EvaluationCard({ result, className = '' }) {
+function EvaluationCard({ result, index }) {
   const [expanded, setExpanded] = useState(true)
 
-  // aiFeedback from backend is a JSON string: { feedback, missing, strengths[], improvements[] }
-  // result.feedback may be the raw aiFeedback string or already parsed fields
   let feedback = ''
   let missing = ''
   let strengths = []
@@ -40,117 +29,77 @@ function EvaluationCard({ result, className = '' }) {
     improvements = Array.isArray(result?.improvements) ? result.improvements : []
   }
 
-  const rawScore = result?.score ?? result?.aiScore ?? null
-  const score100 = rawScore !== null ? rawScore * 10 : null
-  const suggestion = missing // use "missing" as the suggestion/tip section
-
-  const scoreColor =
-    rawScore >= 8 ? 'text-[#22c55e]' :
-    rawScore >= 5 ? 'text-[#f59e0b]' :
-    'text-[#ef4444]'
-
-  const scoreRing =
-    rawScore >= 8 ? 'stroke-[#22c55e]' :
-    rawScore >= 5 ? 'stroke-[#f59e0b]' :
-    'stroke-[#ef4444]'
+  const rawScore = result?.score ?? result?.aiScore ?? 0
+  const scoreColor = rawScore >= 8 ? 'text-success' : rawScore >= 5 ? 'text-warning' : 'text-error'
 
   return (
-    <div className={`bg-[#0a0a0b] border border-[#1f1f22] rounded-[12px] overflow-hidden ${className}`}>
-      {/* Score Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f22]">
-        <div className="flex items-center gap-3">
-          {rawScore !== null && (
-            <div className="relative w-12 h-12 flex-shrink-0">
-              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#27272a" strokeWidth="2.5" />
-                <circle
-                  cx="18" cy="18" r="15.9" fill="none"
-                  className={scoreRing}
-                  strokeWidth="2.5"
-                  strokeDasharray={`${score100} ${100 - score100}`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className={`absolute inset-0 flex items-center justify-center text-[11px] font-bold ${scoreColor}`}>
-                {rawScore}/10
-              </span>
-            </div>
-          )}
+    <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden ambient-shadow flex flex-col transition-all duration-300">
+      <div
+        onClick={() => setExpanded(!expanded)}
+        className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between cursor-pointer hover:bg-surface-container-low/30"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center font-bold text-on-surface-variant">
+            {index + 1}
+          </div>
           <div>
-            <p className="text-sm font-semibold text-[#fafafa]">Evaluation Result</p>
-            {rawScore !== null && (
-              <Badge variant={rawScore >= 8 ? 'success' : rawScore >= 5 ? 'warning' : 'error'}>
-                {rawScore >= 8 ? 'Strong' : rawScore >= 5 ? 'Decent' : 'Needs Work'}
-              </Badge>
-            )}
+            <h4 className="font-headline-sm text-headline-sm font-semibold max-w-[400px] truncate">{result.questionText}</h4>
+            <p className="font-label-md text-label-md text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+              Score: <span className={`font-bold ${scoreColor}`}>{rawScore}/10</span>
+            </p>
           </div>
         </div>
-        <button
-          onClick={() => setExpanded((p) => !p)}
-          className="text-[#52525b] hover:text-[#a1a1aa] transition-colors"
-        >
-          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+        <span className="material-symbols-outlined text-on-surface-variant transition-transform" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>expand_more</span>
       </div>
 
       {expanded && (
-        <div className="p-5 flex flex-col gap-5">
-          {/* Feedback */}
-          {feedback && (
-            <div>
-              <p className="text-xs font-semibold text-[#71717a] uppercase tracking-wider mb-2">AI Feedback</p>
-              <p className="text-sm text-[#a1a1aa] leading-relaxed">{feedback}</p>
-            </div>
-          )}
-
-          {/* Strengths */}
-          {strengths.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-[#22c55e] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <CheckCircle size={11} /> Strengths
-              </p>
-              <ul className="flex flex-col gap-1.5">
+        <div className="p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-success font-label-md uppercase tracking-wider">
+                <span className="material-symbols-outlined text-[18px]">verified</span>
+                Key Strengths
+              </div>
+              <ul className="space-y-2">
                 {strengths.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#a1a1aa]">
-                    <CheckCircle size={13} className="text-[#22c55e] flex-shrink-0 mt-0.5" />
+                  <li key={i} className="flex items-start gap-3 p-3 bg-success/5 border border-success/10 rounded-xl text-body-sm">
+                    <span className="material-symbols-outlined text-success text-[18px] shrink-0 mt-0.5">done</span>
                     {s}
                   </li>
                 ))}
+                {strengths.length === 0 && <p className="text-body-sm text-on-surface-variant opacity-50 italic">No specific strengths noted.</p>}
               </ul>
             </div>
-          )}
-
-          {/* Improvements */}
-          {improvements.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-[#ef4444] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <XCircle size={11} /> Areas to Improve
-              </p>
-              <ul className="flex flex-col gap-1.5">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-warning font-label-md uppercase tracking-wider">
+                <span className="material-symbols-outlined text-[18px]">emergency_home</span>
+                Areas for Growth
+              </div>
+              <ul className="space-y-2">
                 {improvements.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#a1a1aa]">
-                    <XCircle size={13} className="text-[#ef4444] flex-shrink-0 mt-0.5" />
+                  <li key={i} className="flex items-start gap-3 p-3 bg-warning/5 border border-warning/10 rounded-xl text-body-sm">
+                    <span className="material-symbols-outlined text-warning text-[18px] shrink-0 mt-0.5">trending_up</span>
                     {s}
                   </li>
                 ))}
+                {improvements.length === 0 && <p className="text-body-sm text-on-surface-variant opacity-50 italic">No specific growth areas noted.</p>}
               </ul>
             </div>
-          )}
+          </div>
 
-          {/* Suggestion */}
-          {suggestion && (
-            <div className="bg-[#7c6af7]/8 border border-[#7c6af7]/20 rounded-[8px] p-4 flex gap-3">
-              <Lightbulb size={15} className="text-[#9585f8] flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-[#a1a1aa] leading-relaxed">{suggestion}</p>
+          <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl">
+            <div className="flex items-center gap-2 text-primary font-label-md uppercase tracking-wider mb-2">
+              <span className="material-symbols-outlined text-[18px]">psychology</span>
+              AI Synthesis
             </div>
-          )}
-
-          {/* Raw JSON fallback */}
-          {!feedback && rawScore === null && (
-            <pre className="text-xs text-[#71717a] whitespace-pre-wrap font-mono bg-[#111113] rounded-[8px] p-4 overflow-auto max-h-60">
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          )}
+            <p className="font-body-md text-body-md leading-relaxed text-on-surface-variant">{feedback}</p>
+            {missing && (
+              <div className="mt-4 pt-4 border-t border-primary/10">
+                <p className="font-label-md text-label-md text-on-surface font-semibold mb-1">Missed Concepts:</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant italic">{missing}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -164,130 +113,68 @@ function SessionResultsView({ sessionId }) {
   const [session, setSession] = useState(null)
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     const fetchSession = async () => {
       if (!sessionId || !token) return
-      setLoading(true)
       try {
         const data = await getSessionDetails(sessionId, token)
         setSession(data.session)
         setQuestions(data.questions || [])
-        setError('')
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
+      } catch { /* ignore */ }
+      finally { setLoading(false) }
     }
     fetchSession()
   }, [sessionId, token])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 size={20} className="text-[#7c6af7] animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center py-20 animate-pulse"><div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div></div>
 
-  if (error || !session) {
-    return (
-      <div className="text-center py-16">
-        <Alert type="error" message={error || 'Session not found'} />
-      </div>
-    )
-  }
-
-  const answeredQuestions = questions.filter(q => q.userAnswer && q.userAnswer.trim())
-  const avgScore = answeredQuestions.length > 0 
-    ? (answeredQuestions.reduce((a, b) => a + (b.aiScore || 0), 0) / answeredQuestions.length).toFixed(1)
-    : 0
+  const avgScore = questions.length > 0 ? (questions.reduce((a, b) => a + (b.aiScore || 0), 0) / questions.length).toFixed(1) : 0
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <button
-          onClick={() => navigate('/history')}
-          className="flex items-center gap-2 text-sm text-[#7c6af7] hover:text-[#9585f8] transition-colors"
-        >
-          ← Back to History
-        </button>
-        <Button size="sm" variant="secondary" onClick={() => navigate('/interview')}>
-          New Session
-        </Button>
-      </div>
-
-      {/* Session Info */}
-      <div className="bg-[#111113] border border-[#27272a] rounded-[12px] p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-[#fafafa] mb-1">{session.topic}</h2>
-            <p className="text-sm text-[#71717a]">
-              <Badge variant={session.difficulty === 'easy' ? 'success' : session.difficulty === 'medium' ? 'warning' : 'error'}>
-                {session.difficulty}
-              </Badge>
-              {' '}· {session.mode} Mode
-            </p>
+    <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-stack-lg antialiased">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <button onClick={() => navigate('/history')} className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center hover:bg-outline-variant/30 transition-all">
+              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            </button>
+            <span className="font-label-md text-label-md text-primary font-bold tracking-widest uppercase">Report Analysis</span>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-[#71717a] mb-1">Average Score</p>
-            <p className="text-3xl font-bold text-[#7c6af7]">{avgScore}/10</p>
+          <h2 className="font-headline-lg text-headline-lg md:text-display-lg font-bold text-on-surface tracking-tight">{session?.topic}</h2>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-on-surface-variant font-label-md">
+              <span className="material-symbols-outlined text-[16px]">tune</span>
+              {session?.difficulty}
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-on-surface-variant font-label-md">
+              <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+              {new Date(session?.createdAt).toLocaleDateString()}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Questions & Answers */}
-      <div>
-        <h3 className="text-sm font-semibold text-[#fafafa] mb-4">
-          Questions & Answers
-          <span className="ml-2 text-xs font-normal text-[#52525b]">
-            ({answeredQuestions.length} answered)
-          </span>
-        </h3>
-        <div className="flex flex-col gap-6">
-          {questions.map((q, idx) => {
-            const isAnswered = q.userAnswer && q.userAnswer.trim()
-            return (
-              <div key={q.id}>
-                {/* Question + answer context */}
-                <div className="bg-[#111113] border border-[#27272a] rounded-t-[12px] px-5 py-4 border-b-0">
-                  <p className="text-[10px] font-semibold text-[#52525b] uppercase tracking-wider mb-1">
-                    Q{idx + 1}
-                  </p>
-                  <p className="text-sm text-[#fafafa] leading-relaxed">{q.questionText}</p>
-                  {isAnswered && (
-                    <div className="mt-3 pt-3 border-t border-[#1f1f22]">
-                      <p className="text-[10px] font-semibold text-[#52525b] uppercase tracking-wider mb-1">Your Answer</p>
-                      <p className="text-xs text-[#71717a] leading-relaxed whitespace-pre-wrap line-clamp-4">{q.userAnswer}</p>
-                    </div>
-                  )}
-                </div>
-                {/* Evaluation */}
-                {isAnswered ? (
-                  <EvaluationCard
-                    result={{
-                      score: q.aiScore,
-                      feedback: q.aiFeedback,
-                    }}
-                    className="rounded-t-none border-t-0"
-                  />
-                ) : (
-                  <div className="bg-[#0a0a0b] border border-[#1f1f22] rounded-b-[12px] px-5 py-3 text-xs text-[#52525b] italic">
-                    Not answered
-                  </div>
-                )}
-              </div>
-            )
-          })}
+        <div className="flex flex-col items-center md:items-end">
+          <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-1">Aptitude Score</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-[56px] font-bold text-primary leading-none tracking-tighter">{avgScore}</span>
+            <span className="text-[24px] font-medium text-on-surface-variant/40">/10</span>
+          </div>
         </div>
-      </div>
+      </header>
+
+      <section className="space-y-gutter">
+        <h3 className="font-headline-sm text-headline-sm font-semibold text-on-surface mt-8 mb-6">Detailed Response Evaluation</h3>
+        <div className="flex flex-col gap-gutter">
+          {questions.map((q, i) => (
+            <EvaluationCard key={q.id} result={q} index={i} />
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
 
-/* ---------- Overall Results Page ---------- */
+/* ---------- Overall Results View ---------- */
 function OverallResultsView() {
   const navigate = useNavigate()
   const { token, user } = useAuth()
@@ -300,104 +187,103 @@ function OverallResultsView() {
       try {
         const data = await getInterviewHistory(user.userId, token)
         setSessions(data || [])
-      } catch (err) {
-        console.error('Failed to fetch sessions:', err)
-      } finally {
-        setLoading(false)
-      }
+      } catch { /* ignore */ }
+      finally { setLoading(false) }
     }
     fetchSessions()
   }, [user?.userId, token])
 
-  const avgScore = sessions.length > 0
-    ? (sessions.reduce((a, b) => a + (b.overallScore || 0), 0) / sessions.length).toFixed(1)
-    : 0
-  const bestScore = sessions.length > 0
-    ? Math.max(...sessions.map(s => s.overallScore || 0))
-    : 0
+  const avgScore = sessions.length > 0 ? (sessions.reduce((a, b) => a + (b.overallScore || 0), 0) / sessions.length).toFixed(1) : 0
+  const bestScore = sessions.length > 0 ? Math.max(...sessions.map(s => s.overallScore || 0)) : 0
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Avg Score Banner */}
-      <div className="bg-[#111113] border border-[#27272a] rounded-[12px] p-5 mb-6 flex items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[9px] bg-[#7c6af7]/10 flex items-center justify-center">
-            <TrendingUp size={18} className="text-[#7c6af7]" />
-          </div>
-          <div>
-            <p className="text-xs text-[#71717a]">Average Score</p>
-            <p className="text-2xl font-semibold text-[#fafafa]">{avgScore}/10</p>
-          </div>
-        </div>
-        <div className="w-px h-10 bg-[#27272a]" />
-        <div>
-          <p className="text-xs text-[#71717a]">Sessions</p>
-          <p className="text-2xl font-semibold text-[#fafafa]">{sessions.length}</p>
-        </div>
-        <div className="w-px h-10 bg-[#27272a]" />
-        <div>
-          <p className="text-xs text-[#71717a]">Best Score</p>
-          <p className="text-2xl font-semibold text-[#22c55e]">{bestScore}/10</p>
-        </div>
-        <div className="ml-auto">
-          <Button size="sm" variant="secondary" onClick={() => navigate('/interview')}>
-            New Session
-          </Button>
-        </div>
-      </div>
+    <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-stack-lg antialiased">
+      <header className="flex flex-col gap-2 mb-4">
+        <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">Analytics & History</h2>
+        <p className="font-body-md text-body-md text-on-surface-variant">Track your technical progression and review past evaluations.</p>
+      </header>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Recent Results List */}
-        <div>
-          <h2 className="text-sm font-semibold text-[#fafafa] mb-4">Session History</h2>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 size={20} className="text-[#7c6af7] animate-spin" />
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+        {/* Bento Summary Stats */}
+        <div className="md:col-span-4 bg-primary text-on-primary rounded-3xl p-8 flex flex-col justify-between shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
+          <div>
+            <p className="font-label-md text-label-md text-on-primary/70 uppercase tracking-widest mb-2">Cumulative Score</p>
+            <h3 className="text-[64px] font-bold tracking-tighter leading-none">{avgScore}</h3>
+          </div>
+          <div className="mt-8 flex items-center justify-between border-t border-white/20 pt-6">
+            <div>
+              <p className="font-label-md text-[10px] text-on-primary/60 uppercase">Sessions</p>
+              <p className="text-xl font-bold">{sessions.length}</p>
             </div>
-          ) : sessions.length === 0 ? (
-            <p className="text-sm text-[#52525b]">No sessions yet. Start your first interview!</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {sessions.slice(0, 5).map((s) => {
-                const scoreColor = s.overallScore >= 8 ? '#22c55e' : s.overallScore >= 5 ? '#f59e0b' : '#ef4444'
+            <div className="text-right">
+              <p className="font-label-md text-[10px] text-on-primary/60 uppercase">Best</p>
+              <p className="text-xl font-bold">{bestScore}/10</p>
+            </div>
+          </div>
+        </div>
+
+        {/* History Table/List */}
+        <div className="md:col-span-8 bg-surface-container-lowest border border-outline-variant/40 rounded-3xl p-6 ambient-shadow">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-headline-sm text-headline-sm font-semibold">Session Logs</h3>
+            <div className="flex gap-2">
+              <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant"><span className="material-symbols-outlined text-[20px]">filter_list</span></button>
+              <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant"><span className="material-symbols-outlined text-[20px]">search</span></button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {loading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-30 animate-pulse">
+                <div className="w-12 h-12 bg-outline-variant rounded-full"></div>
+                <div className="h-4 bg-outline-variant w-32 rounded"></div>
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="py-20 text-center flex flex-col items-center gap-4 grayscale opacity-50">
+                <span className="material-symbols-outlined text-[48px]">history_toggle_off</span>
+                <p className="text-on-surface-variant">No interview history discovered yet.</p>
+              </div>
+            ) : (
+              sessions.map((s) => {
+                const scColor = s.overallScore >= 8 ? 'text-success' : s.overallScore >= 5 ? 'text-warning' : 'text-error'
                 return (
                   <div
                     key={s.id}
                     onClick={() => navigate(`/results/${s.id}`)}
-                    className="bg-[#111113] border border-[#27272a] rounded-[10px] px-4 py-3.5 flex items-center gap-4 hover:border-[#3f3f46] transition-all cursor-pointer group"
+                    className="group flex items-center justify-between p-4 bg-surface-container-low/30 hover:bg-surface-container-low border border-transparent hover:border-outline-variant/40 rounded-2xl cursor-pointer transition-all duration-200"
                   >
-                    <div className="w-8 h-8 rounded-[7px] bg-[#18181b] flex items-center justify-center flex-shrink-0">
-                      <BarChart2 size={14} className="text-[#71717a]" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        <span className="material-symbols-outlined">analytics</span>
+                      </div>
+                      <div>
+                        <h4 className="font-label-md text-label-md font-bold text-on-surface group-hover:text-primary transition-all">{s.topic}</h4>
+                        <p className="font-body-sm text-body-sm text-on-surface-variant">{new Date(s.createdAt).toLocaleDateString()} · {s.difficulty}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#fafafa] truncate">{s.topic}</p>
-                      <p className="text-xs text-[#52525b]">{new Date(s.createdAt).toLocaleDateString()}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className={`font-headline-sm text-headline-sm font-bold ${scColor}`}>{s.overallScore}/10</p>
+                      </div>
+                      <span className="material-symbols-outlined text-outline-variant">chevron_right</span>
                     </div>
-                    <span className="text-sm font-semibold" style={{ color: scoreColor }}>
-                      {s.overallScore}/10
-                    </span>
                   </div>
                 )
-              })}
-            </div>
-          )}
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-/* ---------- Page ---------- */
+/* ---------- Page Orchestrator ---------- */
 export function ResultsPage() {
   const { sessionId } = useParams()
-
   return (
-    <div className="w-full h-full overflow-y-auto p-7 custom-scrollbar">
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-[#fafafa] mb-1">Results</h1>
-        <p className="text-sm text-[#71717a]">Review your performance and AI feedback from past sessions.</p>
-      </div>
-
+    <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
       {sessionId ? <SessionResultsView sessionId={sessionId} /> : <OverallResultsView />}
     </div>
   )

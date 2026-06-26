@@ -3,23 +3,25 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { DashboardLayout } from './components/layout/DashboardLayout'
 
-import { LandingPage }   from './pages/LandingPage'
-import { LoginPage }     from './pages/LoginPage'
-import { RegisterPage }  from './pages/RegisterPage'
+import { LandingPage } from './pages/LandingPage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { InterviewPage } from './pages/InterviewPage'
-import { ResultsPage }   from './pages/ResultsPage'
-import { HistoryPage }   from './pages/HistoryPage'
-import { ProfilePage }   from './pages/ProfilePage'
-import { AdminPage }     from './pages/AdminPage'
+import { ResultsPage } from './pages/ResultsPage'
+import { HistoryPage } from './pages/HistoryPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { RoadmapPage } from './pages/RoadmapPage'
+import { ResumeAnalyzerPage } from './pages/ResumeAnalyzerPage'
+import { AdminPage } from './pages/AdminPage'
 
 function App() {
   return (
     <AuthProvider>
       <Routes>
         {/* Public */}
-        <Route path="/"         element={<LandingPage />} />
-        <Route path="/login"    element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected — all share the sidebar layout */}
@@ -32,11 +34,13 @@ function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/interview" element={<InterviewPage />} />
-          <Route path="/results"   element={<ResultsPage />} />
+          <Route path="/roadmap" element={<RoadmapPage />} />
+          <Route path="/analyzer" element={<ResumeAnalyzerPage />} />
+          <Route path="/results" element={<ResultsPage />} />
           <Route path="/results/:sessionId" element={<ResultsPage />} />
-          <Route path="/history"   element={<HistoryPage />} />
-          <Route path="/profile"   element={<ProfilePage />} />
-          <Route path="/admin"     element={<AdminPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
 
         {/* Fallback */}

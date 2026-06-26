@@ -149,3 +149,16 @@ export function changePassword(payload, token) {
     body: JSON.stringify(payload),
   })
 }
+
+export function analyzeResume(file, token) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return request('/api/resume/analyze', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData,
+  })
+}

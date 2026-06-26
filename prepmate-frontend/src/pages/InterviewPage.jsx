@@ -1,28 +1,32 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mic, ChevronRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { generateInterview, evaluateAnswer } from '../api'
-import { Button } from '../components/ui/Button'
-import { Alert } from '../components/ui/Alert'
-import { Badge } from '../components/ui/Badge'
-import { Textarea } from '../components/ui/Input'
 
-const TOPICS = ['Data Structures', 'System Design', 'React', 'Node.js', 'SQL', 'Java', 'Python', 'Spring Boot', 'AWS', 'Docker']
-const DIFFICULTIES = ['easy', 'medium', 'hard']
-const DIFF_COLORS = { easy: 'success', medium: 'warning', hard: 'error' }
+const TOPICS = [
+  { id: 'ds', label: 'Data Structures', icon: 'account_tree' },
+  { id: 'sys', label: 'System Design', icon: 'hub' },
+  { id: 'react', label: 'React', icon: 'rebase_edit' },
+  { id: 'node', label: 'Node.js', icon: 'terminal' },
+  { id: 'sql', label: 'SQL', icon: 'database' },
+  { id: 'python', label: 'Python', icon: 'code_blocks' },
+  { id: 'aws', label: 'AWS', icon: 'cloud_queue' },
+  { id: 'docker', label: 'Docker', icon: 'grid_view' }
+]
+const DIFFICULTIES = [
+  { id: 'easy', label: 'Easy', desc: 'Fundamental concepts' },
+  { id: 'medium', label: 'Medium', desc: 'Real-world scenarios' },
+  { id: 'hard', label: 'Hard', desc: 'Complex edge cases' }
+]
 
 /* ---------- Step 1 — Setup ---------- */
 function SetupStep({ onStart }) {
   const { token, user } = useAuth()
-  const navigate = useNavigate()
-
   const [activeTab, setActiveTab] = useState('practice') // 'practice' | 'mock'
   const [topic, setTopic] = useState('')
   const [customTopic, setCustomTopic] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [difficulty, setDifficulty] = useState('medium')
-  const [userId, setUserId] = useState(user?.userId ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -38,7 +42,7 @@ function SetupStep({ onStart }) {
       setError('Please paste a job description.')
       return
     }
-    if (!userId) {
+    if (!user?.userId) {
       setError('User ID is required.')
       return
     }
@@ -48,7 +52,7 @@ function SetupStep({ onStart }) {
     try {
       const payload = {
         difficulty,
-        userId: Number(userId),
+        userId: Number(user.userId),
         mode: activeTab === 'mock' ? 'MOCK' : 'PRACTICE'
       }
       if (activeTab === 'mock') {
@@ -68,135 +72,120 @@ function SetupStep({ onStart }) {
   }
 
   return (
-    <div className="p-7 max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-[#fafafa] mb-1">New Interview Session</h1>
-        <p className="text-sm text-[#71717a]">Select practice mode or paste a job description to begin.</p>
-      </div>
+    <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-stack-lg overflow-y-auto antialiased">
+      <header className="flex flex-col gap-2 mb-2">
+        <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">Configure Your Session</h2>
+        <p className="font-body-md text-body-md text-on-surface-variant">Choose your focus area and difficulty to begin an AI-simulated interview.</p>
+      </header>
 
-      {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
+      {error && (
+        <div className="p-4 bg-error-container text-on-error-container text-sm rounded-xl border border-error/20 flex items-center gap-3">
+          <span className="material-symbols-outlined">error</span>
+          {error}
+        </div>
+      )}
 
-      {/* Mode Tabs */}
-      <div className="flex bg-[#111113] p-1 rounded-lg border border-[#27272a] mb-6">
+      {/* Mode Toggle */}
+      <div className="flex p-1 bg-surface-container-high rounded-xl w-full max-w-md mx-auto mb-4 border border-outline-variant/30">
         <button
-          type="button"
-          onClick={() => { setActiveTab('practice'); setError(''); }}
-          className={`flex-1 py-1.5 rounded-[6px] text-xs font-semibold transition-all ${
-            activeTab === 'practice'
-              ? 'bg-[#7c6af7] text-white shadow'
-              : 'text-[#71717a] hover:text-[#fafafa]'
-          }`}
+          onClick={() => setActiveTab('practice')}
+          className={`flex-1 py-3 rounded-lg font-label-md text-label-md transition-all duration-200 ${activeTab === 'practice' ? 'bg-surface text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
         >
-          Topic Practice (5 Questions)
+          Topic Practice
         </button>
         <button
-          type="button"
-          onClick={() => { setActiveTab('mock'); setError(''); }}
-          className={`flex-1 py-1.5 rounded-[6px] text-xs font-semibold transition-all ${
-            activeTab === 'mock'
-              ? 'bg-[#7c6af7] text-white shadow'
-              : 'text-[#71717a] hover:text-[#fafafa]'
-          }`}
+          onClick={() => setActiveTab('mock')}
+          className={`flex-1 py-3 rounded-lg font-label-md text-label-md transition-all duration-200 ${activeTab === 'mock' ? 'bg-surface text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
         >
-          Job Description Mock (7 Questions)
+          Mock Interview
         </button>
       </div>
 
-      <form onSubmit={handleStart} className="flex flex-col gap-6">
-        {/* Topic Selection for Practice Mode */}
+      <div className="flex flex-col gap-stack-xl">
         {activeTab === 'practice' ? (
-          <div>
-            <p className="text-sm font-medium text-[#a1a1aa] mb-3">Topic</p>
-            <div className="flex flex-wrap gap-2 mb-3">
+          <section>
+            <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest mb-6">1. Select a focus area</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
               {TOPICS.map((t) => (
                 <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTopic(t)}
-                  className={`px-3 py-1.5 rounded-[7px] text-xs font-medium border transition-all duration-150 ${
-                    topic === t
-                      ? 'bg-[#7c6af7]/15 border-[#7c6af7]/40 text-[#9585f8]'
-                      : 'bg-[#111113] border-[#27272a] text-[#71717a] hover:border-[#3f3f46] hover:text-[#a1a1aa]'
-                  }`}
+                  key={t.id}
+                  onClick={() => setTopic(t.label)}
+                  className={`bg-surface-container-lowest border rounded-2xl p-stack-md flex flex-col items-center gap-stack-sm hover:-translate-y-1 transition-all duration-300 text-center ${topic === t.label ? 'border-primary ring-1 ring-primary/20 bg-primary-container/20' : 'border-outline-variant/50 hover:border-primary/50'}`}
                 >
-                  {t}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${topic === t.label ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+                    <span className="material-symbols-outlined text-[24px]">{t.icon}</span>
+                  </div>
+                  <span className="font-headline-sm text-headline-sm font-semibold">{t.label}</span>
                 </button>
               ))}
               <button
-                type="button"
                 onClick={() => setTopic('__custom__')}
-                className={`px-3 py-1.5 rounded-[7px] text-xs font-medium border transition-all duration-150 ${
-                  topic === '__custom__'
-                    ? 'bg-[#7c6af7]/15 border-[#7c6af7]/40 text-[#9585f8]'
-                    : 'bg-[#111113] border-[#27272a] text-[#71717a] hover:border-[#3f3f46] hover:text-[#a1a1aa]'
-                }`}
+                className={`bg-surface-container-lowest border rounded-2xl p-stack-md flex flex-col items-center gap-stack-sm hover:-translate-y-1 transition-all duration-300 text-center ${topic === '__custom__' ? 'border-primary ring-1 ring-primary/20 bg-primary-container/20' : 'border-outline-variant/60 border-dashed hover:border-primary/50'}`}
               >
-                + Custom
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${topic === '__custom__' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+                  <span className="material-symbols-outlined text-[24px]">add</span>
+                </div>
+                <span className="font-headline-sm text-headline-sm font-semibold">Custom</span>
               </button>
             </div>
             {topic === '__custom__' && (
-              <input
-                type="text"
-                placeholder="Enter your topic…"
-                value={customTopic}
-                onChange={(e) => setCustomTopic(e.target.value)}
-                className="w-full h-9 bg-[#111113] border border-[#27272a] rounded-[8px] px-3 text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#7c6af7]/70 focus:ring-1 focus:ring-[#7c6af7]/30 transition-all"
-              />
+              <div className="mt-6 animate-in slide-in-from-top-2">
+                <input
+                  type="text"
+                  placeholder="Enter custom topic (e.g. GraphQL, Flutter, Architecture)"
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  className="w-full h-12 px-4 bg-surface border border-outline-variant rounded-xl font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                />
+              </div>
             )}
-          </div>
+          </section>
         ) : (
-          /* Job Description Textarea for Mock Mode */
-          <div>
-            <p className="text-sm font-medium text-[#a1a1aa] mb-2">Pasted Job Description</p>
+          <section>
+            <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest mb-6">1. Paste Job Description</h3>
             <textarea
               rows={8}
-              placeholder="Paste the job description (requirements, skills, responsibilities) here. We will generate 7 highly targeted interview questions based on it..."
+              placeholder="Requirements: 3+ years React experience, Node.js proficiency, familiar with AWS..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              required
-              className="w-full bg-[#111113] border border-[#27272a] rounded-[8px] p-3 text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#7c6af7]/70 focus:ring-1 focus:ring-[#7c6af7]/30 transition-all"
+              className="w-full p-4 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm resize-none"
             />
-          </div>
+            <p className="mt-3 font-body-sm text-body-sm text-on-surface-variant">Our AI will extract core competencies and generate 7 targeted questions.</p>
+          </section>
         )}
 
-        {/* Difficulty */}
-        <div>
-          <p className="text-sm font-medium text-[#a1a1aa] mb-3">Difficulty</p>
-          <div className="flex gap-2">
+        <section>
+          <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest mb-6">2. Choose Difficulty</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
             {DIFFICULTIES.map((d) => (
               <button
-                key={d}
-                type="button"
-                onClick={() => setDifficulty(d)}
-                className={`flex-1 py-2 rounded-[8px] text-xs font-medium border capitalize transition-all duration-150 ${
-                  difficulty === d
-                    ? d === 'easy'
-                      ? 'bg-[#22c55e]/10 border-[#22c55e]/30 text-[#22c55e]'
-                      : d === 'medium'
-                        ? 'bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#f59e0b]'
-                        : 'bg-[#ef4444]/10 border-[#ef4444]/30 text-[#ef4444]'
-                    : 'bg-[#111113] border-[#27272a] text-[#71717a] hover:border-[#3f3f46] hover:text-[#a1a1aa]'
-                }`}
+                key={d.id}
+                onClick={() => setDifficulty(d.id)}
+                className={`p-stack-md rounded-2xl border text-left transition-all duration-200 ${difficulty === d.id ? 'bg-surface-container-lowest border-primary ring-1 ring-primary/20' : 'bg-surface-container-low border-outline-variant/30 hover:border-outline-variant'}`}
               >
-                {d}
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-headline-sm text-headline-sm font-bold capitalize">{d.label}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${difficulty === d.id ? 'bg-primary/10 text-primary' : 'bg-surface-container-high text-outline'}`}>
+                    <span className="material-symbols-outlined text-[18px]">
+                      {difficulty === d.id ? 'check_circle' : 'circle'}
+                    </span>
+                  </div>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">{d.desc}</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* User ID — hidden, auto-filled from auth */}
-
-        <Button
-          type="submit"
-          size="lg"
-          fullWidth
-          loading={loading}
-          disabled={activeTab === 'practice' ? !activeTopic.trim() : !jobDescription.trim()}
-          leftIcon={<Mic size={15} />}
+        <button
+          onClick={handleStart}
+          disabled={loading || (activeTab === 'practice' ? !activeTopic.trim() : !jobDescription.trim())}
+          className="w-full bg-primary text-on-primary font-label-md text-label-md py-4 rounded-2xl flex items-center justify-center gap-3 shadow-md hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 mb-12"
         >
-          {activeTab === 'mock' ? 'Generate 7 Custom Questions' : 'Start Interview'}
-        </Button>
-      </form>
+          {loading ? 'Analyzing & Generating...' : 'Begin Session'}
+          <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+        </button>
+      </div>
     </div>
   )
 }
@@ -204,9 +193,7 @@ function SetupStep({ onStart }) {
 /* ---------- Step 2 — Active Interview ---------- */
 function InterviewStep({ session, topic, difficulty, onDone }) {
   const { token } = useAuth()
-  const navigate = useNavigate()
   const questions = session?.questions ?? []
-
   const [current, setCurrent] = useState(0)
   const [answer, setAnswer] = useState('')
   const [results, setResults] = useState([])
@@ -214,7 +201,7 @@ function InterviewStep({ session, topic, difficulty, onDone }) {
   const [error, setError] = useState('')
 
   const q = questions[current]
-  const progress = ((current) / questions.length) * 100
+  const progressPercent = ((current) / questions.length) * 100
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -223,7 +210,6 @@ function InterviewStep({ session, topic, difficulty, onDone }) {
     setLoading(true)
     try {
       const result = await evaluateAnswer({ questionId: q.id, userAnswer: answer }, token)
-      // Replace result at current index (handles re-submission after Back)
       const updated = [...results]
       updated[current] = { question: q, answer, evaluation: result }
       setResults(updated)
@@ -243,78 +229,89 @@ function InterviewStep({ session, topic, difficulty, onDone }) {
   if (!q) return null
 
   return (
-    <div className="p-7 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <p className="text-xs text-[#52525b] mb-1">
-            Question {current + 1} of {questions.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-[#a1a1aa]">{topic}</span>
-            <Badge variant={DIFF_COLORS[difficulty]}>{difficulty}</Badge>
+    <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-gutter overflow-y-auto">
+      {/* Session Progress Header */}
+      <header className="flex flex-col gap-stack-md mb-2">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">{topic}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="font-label-md text-label-md text-on-surface-variant">Question {current + 1} of {questions.length}</span>
+              <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+              <span className="font-label-md text-label-md text-primary font-bold capitalize">{difficulty} Mode</span>
+            </div>
+          </div>
+          <div className="hidden sm:block">
+            <button onClick={() => window.location.reload()} className="text-on-surface-variant hover:text-error transition-colors flex items-center gap-2 font-label-md">
+              <span className="material-symbols-outlined text-[18px]">cancel</span>
+              Exit Session
+            </button>
           </div>
         </div>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="text-xs text-[#52525b] hover:text-[#71717a] transition-colors"
-        >
-          End session
-        </button>
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-full h-1 bg-[#1f1f22] rounded-full mb-8 overflow-hidden">
-        <div
-          className="h-full bg-[#7c6af7] rounded-full transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-5" />}
-
-      {/* Question card */}
-      <div className="bg-[#111113] border border-[#27272a] rounded-[12px] p-6 mb-5">
-        <p className="text-xs font-medium text-[#7c6af7] uppercase tracking-wider mb-3">Question</p>
-        <p className="text-base text-[#fafafa] leading-relaxed">{q.questionText ?? q.text ?? q.question}</p>
-      </div>
-
-      {/* Answer */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Textarea
-          label="Your answer"
-          placeholder="Type your answer here… Be specific and use examples where possible."
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          rows={7}
-          required
-        />
-        <div className="flex gap-3">
-          {current > 0 && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="lg"
-              onClick={() => {
-                setCurrent((c) => c - 1)
-                setAnswer(results[current - 1]?.answer ?? '')
-              }}
-            >
-              Back
-            </Button>
-          )}
-          <Button
-            type="submit"
-            size="lg"
-            fullWidth
-            loading={loading}
-            disabled={!answer.trim()}
-            rightIcon={<ChevronRight size={15} />}
-          >
-            {current + 1 === questions.length ? 'Submit & Finish' : 'Submit Answer'}
-          </Button>
+        <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+          <div className="bg-primary h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }}></div>
         </div>
-      </form>
+      </header>
+
+      {error && (
+        <div className="p-4 bg-error-container text-on-error-container text-sm rounded-xl border border-error/20 flex items-center gap-3">
+          <span className="material-symbols-outlined">error</span>
+          {error}
+        </div>
+      )}
+
+      {/* Main Work Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter flex-1 items-start">
+        {/* Question Panel */}
+        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/50 rounded-2xl p-stack-md soft-shadow">
+          <div className="flex items-center gap-2 text-primary font-label-md text-label-md uppercase tracking-widest mb-4">
+            <span className="material-symbols-outlined text-[18px]">chat_bubble_outline</span>
+            Prompt
+          </div>
+          <h3 className="font-headline-md text-headline-md text-on-surface font-semibold leading-relaxed">
+            {q.questionText || q.text || q.question}
+          </h3>
+          <div className="mt-8 p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3">
+            <span className="material-symbols-outlined text-primary text-[20px]">info</span>
+            <p className="font-body-sm text-body-sm text-on-surface-variant">
+              Highlight your relevant experience and explain your architectural trade-offs where applicable.
+            </p>
+          </div>
+        </div>
+
+        {/* Answer Canvas */}
+        <div className="lg:col-span-8 flex flex-col gap-gutter">
+          <div className="relative group">
+            <textarea
+              rows={12}
+              placeholder="Your answer here..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              className="w-full p-6 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl font-body-md text-on-surface text-body-md leading-relaxed focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm resize-none"
+            />
+            <div className="absolute top-4 right-4 text-outline font-label-md text-label-md px-3 py-1 bg-surface-container round-full border border-outline-variant/30">
+              {answer.trim().split(/\s+/).length} words
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex items-center gap-2 text-on-surface-variant font-label-md">
+              <span className="material-symbols-outlined text-[18px]">keyboard_option_key</span>
+              Press Cmd/Ctrl + Enter to submit
+            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !answer.trim()}
+              className="bg-primary text-on-primary font-label-md text-label-md px-8 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:scale-[0.98] transition-all disabled:opacity-70 active:scale-95"
+            >
+              {loading ? 'Evaluating...' : (current + 1 === questions.length ? 'Finalize Session' : 'Continue')}
+              <span className="material-symbols-outlined text-[20px]">
+                {current + 1 === questions.length ? 'done_all' : 'arrow_forward'}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -347,51 +344,45 @@ export function InterviewPage() {
       : 0
 
     return (
-      <div className="w-full h-full overflow-y-auto p-7 custom-scrollbar">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="w-14 h-14 rounded-full bg-[#22c55e]/10 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle size={26} className="text-[#22c55e]" />
-          </div>
-          <h2 className="text-xl font-semibold text-[#fafafa] mb-2">Session Complete</h2>
-          <p className="text-sm text-[#71717a] mb-2">
-            You answered {finalResults.length} questions.
-          </p>
-          <p className="text-3xl font-bold text-[#7c6af7] mb-8">{avgScore}/10 avg score</p>
+      <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col items-center justify-center text-center antialiased">
+        <div className="w-20 h-20 rounded-2xl bg-primary shadow-lg flex items-center justify-center mb-stack-lg pulse-ring">
+          <span className="material-symbols-outlined text-on-primary text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+        </div>
+        <h2 className="font-headline-lg text-[32px] md:text-[48px] font-bold text-on-surface tracking-tight mb-2">Session Complete.</h2>
+        <p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl mb-stack-xl">
+          Excellent work! Your responses have been analyzed by our AI model. You maintained focus throughout the session.
+        </p>
 
-          {/* Quick results summary */}
-          <div className="flex flex-col gap-3 mb-8 text-left">
-            {finalResults.map(({ question, evaluation }, idx) => {
-              const score = evaluation?.aiScore ?? 0
-              const color = score >= 8 ? '#22c55e' : score >= 5 ? '#f59e0b' : '#ef4444'
-              return (
-                <div key={question.id} className="bg-[#111113] border border-[#27272a] rounded-[10px] px-4 py-3 flex items-start gap-3">
-                  <span className="text-xs font-mono text-[#52525b] mt-0.5 w-5 flex-shrink-0">#{idx + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-[#a1a1aa] truncate">{question.questionText}</p>
-                    {evaluation?.aiFeedback && (() => {
-                      let displayFeedback = evaluation.aiFeedback
-                      if (displayFeedback.trim().startsWith('{')) {
-                        try { displayFeedback = JSON.parse(displayFeedback).feedback ?? displayFeedback } catch {}
-                      }
-                      return <p className="text-[11px] text-[#52525b] mt-1 line-clamp-2">{displayFeedback}</p>
-                    })()}
-                  </div>
-                  <span className="text-sm font-bold flex-shrink-0" style={{ color }}>{score}/10</span>
-                </div>
-              )
-            })}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter w-full max-w-4xl mb-stack-xl">
+          <div className="bg-surface-container-low p-stack-md rounded-2xl border border-outline-variant/30">
+            <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-1">Average Score</h4>
+            <p className="text-[40px] font-bold text-primary tracking-tighter">{avgScore}<span className="text-[20px] text-on-surface-variant/50">/10</span></p>
           </div>
+          <div className="bg-surface-container-low p-stack-md rounded-2xl border border-outline-variant/30">
+            <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-1">Depth of Analysis</h4>
+            <p className="text-[40px] font-bold text-on-surface tracking-tighter">High</p>
+          </div>
+          <div className="bg-surface-container-low p-stack-md rounded-2xl border border-outline-variant/30">
+            <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-1">Questions</h4>
+            <p className="text-[40px] font-bold text-on-surface tracking-tighter">{finalResults.length}</p>
+          </div>
+        </div>
 
-          <div className="flex gap-3 justify-center">
-            {sessionId && (
-              <Button variant="primary" onClick={() => navigate(`/results/${sessionId}`)}>
-                Full Results
-              </Button>
-            )}
-            <Button variant="secondary" onClick={() => { setPhase('setup'); setSession(null) }}>
-              New Session
-            </Button>
-          </div>
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          {sessionId && (
+            <button
+              onClick={() => navigate(`/results/${sessionId}`)}
+              className="flex-1 bg-primary text-on-primary font-label-md text-label-md py-4 rounded-xl shadow-md hover:opacity-90 transition-all font-semibold"
+            >
+              Detailed Report
+            </button>
+          )}
+          <button
+            onClick={() => { setPhase('setup'); setSession(null) }}
+            className="flex-1 bg-surface text-on-surface border border-outline-variant font-label-md text-label-md py-4 rounded-xl hover:bg-surface-container-low transition-all font-semibold"
+          >
+            New Session
+          </button>
         </div>
       </div>
     )

@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mic, Search, BarChart2, Loader2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { getInterviewHistory } from '../api'
-import { Badge } from '../components/ui/Badge'
-import { Button } from '../components/ui/Button'
-import { Alert } from '../components/ui/Alert'
-
-const DIFF_COLORS = { easy: 'success', medium: 'warning', hard: 'error' }
 
 export function HistoryPage() {
   const navigate = useNavigate()
@@ -16,22 +10,15 @@ export function HistoryPage() {
   const [search, setSearch] = useState('')
   const [filterDiff, setFilterDiff] = useState('all')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     const fetchHistory = async () => {
       if (!user?.userId || !token) return
-      setLoading(true)
       try {
         const data = await getInterviewHistory(user.userId, token)
         setSessions(data || [])
-        setError('')
-      } catch (err) {
-        setError(err.message)
-        setSessions([])
-      } finally {
-        setLoading(false)
-      }
+      } catch { /* ignore */ }
+      finally { setLoading(false) }
     }
     fetchHistory()
   }, [user?.userId, token])
@@ -42,115 +29,93 @@ export function HistoryPage() {
     return matchSearch && matchDiff
   })
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A'
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-  }
-
   return (
-    <div className="w-full h-full overflow-y-auto p-7 custom-scrollbar">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-semibold text-[#fafafa] mb-1">Interview History</h1>
-            <p className="text-sm text-[#71717a]">{sessions.length} sessions total</p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/interview')} leftIcon={<Mic size={13} />}>
-            New Session
-          </Button>
+    <div className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-stack-lg antialiased overflow-y-auto">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">Technical History</h2>
+          <p className="font-body-md text-body-md text-on-surface-variant">Review all your previous interview sessions and growth metrics.</p>
         </div>
+        <button onClick={() => navigate('/interview')} className="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-xl flex items-center gap-2 shadow-md hover:scale-[0.98] transition-all active:scale-95">
+          <span className="material-symbols-outlined text-[20px]">add</span>
+          New Session
+        </button>
+      </header>
 
-        {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
-
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search by topic…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-9 bg-[#111113] border border-[#27272a] rounded-[8px] pl-9 pr-3 text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#7c6af7]/70 transition-all"
-            />
-          </div>
-          <div className="flex gap-1.5">
-            {['all', 'easy', 'medium', 'hard'].map((d) => (
-              <button
-                key={d}
-                onClick={() => setFilterDiff(d)}
-                className={`px-3 h-9 rounded-[8px] text-xs font-medium border capitalize transition-all ${
-                  filterDiff === d
-                    ? 'bg-[#7c6af7]/15 border-[#7c6af7]/40 text-[#9585f8]'
-                    : 'bg-[#111113] border-[#27272a] text-[#71717a] hover:border-[#3f3f46] hover:text-[#a1a1aa]'
-                }`}
-              >
-                {d === 'all' ? 'All' : d}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col md:flex-row gap-4 items-center mb-2">
+        <div className="relative flex-1 w-full group">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors text-[20px]">search</span>
+          <input
+            type="text"
+            placeholder="Filter by session topic..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface"
+          />
         </div>
+        <div className="flex gap-1 bg-surface-container-low p-1 rounded-xl border border-outline-variant/30 overflow-x-auto w-full md:w-auto">
+          {['all', 'easy', 'medium', 'hard'].map((d) => (
+            <button
+              key={d}
+              onClick={() => setFilterDiff(d)}
+              className={`px-4 py-2 rounded-lg font-label-md text-label-md capitalize transition-all ${filterDiff === d ? 'bg-surface text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-3xl overflow-hidden ambient-shadow">
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 size={20} className="text-[#7c6af7] animate-spin" />
+          <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-30 animate-pulse">
+            <div className="w-12 h-12 bg-outline-variant rounded-full"></div>
+            <div className="h-4 bg-outline-variant w-32 rounded"></div>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-sm text-[#52525b] mb-4">No sessions found</p>
-            <Button onClick={() => navigate('/interview')} size="sm">New Session</Button>
+          <div className="py-24 text-center flex flex-col items-center gap-3">
+            <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center text-on-surface-variant/30 mb-2">
+              <span className="material-symbols-outlined text-[32px]">manage_search</span>
+            </div>
+            <h4 className="font-headline-sm font-semibold">No results found</h4>
+            <p className="font-body-md text-on-surface-variant">Try adjusting your search or filters.</p>
           </div>
         ) : (
-          <div className="bg-[#111113] border border-[#27272a] rounded-[12px] overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 border-b border-[#1f1f22] bg-[#0d0d0f]">
-              <span className="text-xs font-medium text-[#52525b]">Topic</span>
-              <span className="text-xs font-medium text-[#52525b] w-16 text-center">Level</span>
-              <span className="text-xs font-medium text-[#52525b] w-14 text-right">Score</span>
-              <span className="text-xs font-medium text-[#52525b] w-20 text-right hidden sm:block">Duration</span>
-              <span className="text-xs font-medium text-[#52525b] w-28 text-right hidden md:block">Date</span>
+          <div className="flex flex-col">
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-surface-container-low border-b border-outline-variant/30">
+              <div className="col-span-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Topic</div>
+              <div className="col-span-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-widest text-center">Difficulty</div>
+              <div className="col-span-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-widest text-center">Score</div>
+              <div className="col-span-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-widest text-right">Date</div>
             </div>
-            {filtered.map((s, i) => {
-              const scoreColor = s.overallScore >= 8 ? '#22c55e' : s.overallScore >= 5 ? '#f59e0b' : '#ef4444'
+            {filtered.map((s) => {
+              const scColor = s.overallScore >= 8 ? 'text-success' : s.overallScore >= 5 ? 'text-warning' : 'text-error'
               return (
                 <div
                   key={s.id}
                   onClick={() => navigate(`/results/${s.id}`)}
-                  className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-4 items-center hover:bg-[#18181b] transition-colors cursor-pointer ${
-                    i < filtered.length - 1 ? 'border-b border-[#1f1f22]' : ''
-                  }`}
+                  className="grid grid-cols-12 gap-4 px-6 py-5 border-b border-outline-variant/10 hover:bg-surface-container-low/30 cursor-pointer transition-colors items-center last:border-0 group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-[6px] bg-[#18181b] flex items-center justify-center flex-shrink-0">
-                      <Mic size={13} className="text-[#71717a]" />
+                  <div className="col-span-6 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all">
+                      <span className="material-symbols-outlined text-[20px]">terminal</span>
                     </div>
-                    <span className="text-sm text-[#fafafa] font-medium truncate">{s.topic}</span>
+                    <span className="font-label-md text-label-md font-bold group-hover:text-primary transition-all truncate">{s.topic}</span>
                   </div>
-                  <div className="w-16 flex justify-center">
-                    <Badge variant={DIFF_COLORS[s.difficulty]}>{s.difficulty}</Badge>
+                  <div className="col-span-2 flex justify-center">
+                    <span className="px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant/20 font-label-md text-[11px] capitalize">
+                      {s.difficulty}
+                    </span>
                   </div>
-                  <span className="w-14 text-sm font-semibold text-right" style={{ color: scoreColor }}>{s.overallScore || 0}/10</span>
-                  <span className="w-20 text-xs text-[#52525b] text-right hidden sm:block">N/A</span>
-                  <span className="w-28 text-xs text-[#52525b] text-right hidden md:block">{formatDate(s.createdAt)}</span>
+                  <div className="col-span-2 text-center">
+                    <span className={`font-headline-sm font-bold ${scColor}`}>{s.overallScore}/10</span>
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <span className="font-body-sm text-on-surface-variant">{new Date(s.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
               )
             })}
-          </div>
-        )}
-
-        {!loading && filtered.length > 0 && (
-          <div className="flex items-center gap-6 mt-6 pt-5 border-t border-[#1f1f22]">
-            <div className="flex items-center gap-2 text-xs text-[#52525b]">
-              <BarChart2 size={13} className="text-[#7c6af7]" />
-              Showing {filtered.length} of {sessions.length} sessions
-            </div>
-            {filtered.length > 0 && (
-              <div className="text-xs text-[#52525b]">
-                Avg score:{' '}
-                <span className="text-[#a1a1aa] font-medium">
-                  {Math.round(filtered.reduce((a, b) => a + (b.overallScore || 0), 0) / filtered.length)}/10
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>

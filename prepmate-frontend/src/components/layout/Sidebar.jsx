@@ -1,24 +1,14 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Mic,
-  BarChart2,
-  Clock,
-  User,
-  LogOut,
-  Sparkles,
-  ChevronRight,
-  Shield,
-} from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { cn } from '../../lib/utils'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/interview', icon: Mic,             label: 'Mock Interview' },
-  { to: '/results',   icon: BarChart2,        label: 'Results'   },
-  { to: '/history',   icon: Clock,            label: 'History'   },
-  { to: '/profile',   icon: User,             label: 'Profile'   },
+  { to: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
+  { to: '/roadmap', icon: 'alt_route', label: 'Career Roadmap' },
+  { to: '/interview', icon: 'videocam', label: 'Mock Interviews' },
+  { to: '/analyzer', icon: 'description', label: 'Resume Analyzer' },
+  { to: '/history', icon: 'history', label: 'History' },
+  { to: '/profile', icon: 'person', label: 'Profile' },
 ]
 
 export function Sidebar() {
@@ -31,32 +21,53 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex flex-col w-[220px] min-h-screen bg-[#0d0d0f] border-r border-[#1f1f22] flex-shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 h-14 border-b border-[#1f1f22]">
-        <div className="w-6 h-6 rounded-md bg-[#7c6af7] flex items-center justify-center flex-shrink-0">
-          <Sparkles size={13} className="text-white" />
+    <aside className="hidden md:flex flex-col bg-surface h-screen w-64 border-r border-outline-variant shadow-md p-stack-md gap-stack-sm z-40 shrink-0 transition-colors duration-200">
+      {/* Header */}
+      <div className="flex items-center gap-stack-sm mb-stack-lg px-2 pt-2 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-sm">
+          <span className="material-symbols-outlined text-on-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
         </div>
-        <span className="text-sm font-semibold text-[#fafafa] tracking-tight">PrepMate</span>
+        <div>
+          <h1 className="font-headline-md text-[18px] leading-tight font-bold text-primary tracking-tight">PrepMate AI</h1>
+          <p className="font-label-md text-[12px] text-on-surface-variant uppercase tracking-wider">Career Readiness</p>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-3 px-2.5 flex flex-col gap-0.5">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+      {/* Primary Action */}
+      <button
+        onClick={() => navigate('/interview')}
+        className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg flex items-center justify-center gap-2 mb-stack-md hover:scale-[0.98] transition-all duration-200 ease-in-out shadow-sm active:scale-95"
+      >
+        <span className="material-symbols-outlined text-[18px]">add</span>
+        Start New Session
+      </button>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 space-y-1">
+        {NAV_ITEMS.map(({ to, icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-[7px] text-sm transition-all duration-150 group',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ease-in-out font-label-md text-label-md group',
                 isActive
-                  ? 'bg-[#7c6af7]/15 text-[#9585f8] font-medium'
-                  : 'text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#18181b]',
+                  ? 'bg-primary-container text-on-primary-container shadow-sm scale-[0.98]'
+                  : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
               )
             }
           >
-            <Icon size={15} className="flex-shrink-0" />
-            {label}
+            {({ isActive }) => (
+              <>
+                <span
+                  className={cn("material-symbols-outlined transition-colors", isActive ? "text-primary" : "group-hover:text-primary")}
+                  style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  {icon}
+                </span>
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
 
@@ -65,40 +76,43 @@ export function Sidebar() {
             to="/admin"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-[7px] text-sm transition-all duration-150 group mt-4 pt-4 border-t border-[#1f1f22]',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ease-in-out font-label-md text-label-md group mt-4 pt-4 border-t border-outline-variant/30',
                 isActive
-                  ? 'bg-[#7c6af7]/15 text-[#9585f8] font-medium'
-                  : 'text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#18181b]',
+                  ? 'bg-error-container text-on-error-container shadow-sm scale-[0.98]'
+                  : 'text-on-surface-variant hover:bg-error-container/20 hover:text-error'
               )
             }
           >
-            <Shield size={15} className="flex-shrink-0 text-[#7c6af7]" />
+            <span className="material-symbols-outlined">shield</span>
             Admin Panel
           </NavLink>
         )}
       </nav>
 
       {/* User Footer */}
-      <div className="border-t border-[#1f1f22] p-2.5">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-[7px] hover:bg-[#18181b] transition-colors cursor-pointer group">
-          <div className="w-7 h-7 rounded-full bg-[#27272a] flex items-center justify-center flex-shrink-0 text-xs font-semibold text-[#a1a1aa]">
-            {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'}
+      <div className="mt-auto pt-stack-md border-t border-outline-variant/50 space-y-1">
+        <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-surface-container-high transition-all duration-200 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0 shadow-sm border border-primary/20">
+            <span className="text-primary font-bold text-xs">
+              {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-medium text-[#fafafa] truncate leading-none mb-0.5">
+            <p className="font-label-md text-[13px] font-bold text-on-surface truncate leading-tight">
               {user?.name || 'User'}
             </p>
-            <p className="text-[11px] text-[#52525b] truncate leading-none">
-              {user?.email || ''}
+            <p className="font-body-sm text-[11px] text-on-surface-variant truncate">
+              {user?.email || 'Logged in'}
             </p>
           </div>
         </div>
+
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-[7px] text-sm text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef444408] transition-all duration-150 mt-0.5"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-on-surface-variant hover:bg-error-container/10 hover:text-error transition-all duration-200 font-label-md text-label-md"
         >
-          <LogOut size={14} />
-          Sign out
+          <span className="material-symbols-outlined text-[20px]">logout</span>
+          Sign Out
         </button>
       </div>
     </aside>
