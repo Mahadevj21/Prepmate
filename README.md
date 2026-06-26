@@ -1,6 +1,6 @@
 # PrepMate
 
-PrepMate is a high-fidelity, full-stack web app designed for people preparing for technical job interviews. Users register to access a premium, bento-grid based dashboard where they can generate AI-written learning roadmaps, run practice or mock interview sessions with Gemini-generated questions, submit answers for scored feedback, and perform deep-dive resume intelligence audits. The system features a modern Material Design 3 aesthetic with Material Symbols iconography and glassmorphic UI elements.
+PrepMate is a full-stack web application designed to help software engineers prepare for technical interviews. Users access a premium, bento-grid based dashboard to generate personalized study roadmaps, run mock interview sessions with Gemini-generated feedback, and perform deep-dive ATS resume audits. The system features a modern Material Design 3 aesthetic with system-aware dark mode and glassmorphic UI elements.
 
 Live frontend: [prepmate-snowy.vercel.app](https://prepmate-snowy.vercel.app/)
 > [!NOTE]
@@ -32,7 +32,7 @@ The project follows a decoupled client-server architecture:
 **Frontend** (`prepmate-frontend/`)
 - React 19.2, React Router 7.15
 - Vite 8 & Tailwind CSS 4
-- **Material Symbols Outlined** (Iconography)
+- **System-Aware Dark Mode** (React Context + localStorage)
 - **Glassmorphism & Bento Design System** (Vanilla CSS + Tailwind)
 
 ## How the AI Features Work
@@ -88,7 +88,8 @@ npm run dev
 
 - **Direct HTTP vs SDK**: Chose `java.net.http.HttpClient` for Gemini to keep the JAR footprint small and have granular control over retry headers.
 - **Stateless JWT**: Tokens are kept small with only the email subject; roles are resolved from the DB on each request to allow real-time permission updates.
-- **Bento UI Design**: Implemented a card-centric layout to manage high-density information (stats, feedback, roadmaps) effectively across devices.
+- **Bento UI & Dark Mode**: Implemented a card-centric layout to manage high-density information (stats, feedback, roadmaps) across devices, alongside a system-aware dark mode managed via React Context.
+- **Supabase Pooler**: Configured the backend to connect via Supabase's Transaction Pooler (Session Mode) to ensure compatibility with Render's IPv4-only environment.
 
 ## License
 MIT. Copyright 2026 Mahadev J.
