@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginUser } from '../api'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const { dark, toggle } = useTheme()
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -35,6 +37,14 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop antialiased text-on-surface relative">
+      {/* Dark mode toggle */}
+      <button
+        onClick={toggle}
+        aria-label="Toggle dark mode"
+        className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary transition-all duration-200"
+      >
+        <span className="material-symbols-outlined text-[20px]">{dark ? 'light_mode' : 'dark_mode'}</span>
+      </button>
       <main className="w-full max-w-[420px] bg-surface-container-lowest rounded-2xl shadow-ambient border border-outline-variant/30 flex flex-col overflow-hidden relative z-10">
         <div className="p-8 sm:p-10 flex flex-col gap-stack-lg">
           {/* Header */}

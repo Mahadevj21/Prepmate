@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { loginUser, getApiBaseUrl } from '../api'
 
 export function LandingPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { dark, toggle } = useTheme()
   const [tryingFree, setTryingFree] = useState(false)
   const [trialError, setTrialError] = useState('')
 
@@ -47,7 +49,14 @@ export function LandingPage() {
             <a className="text-on-surface-variant hover:text-primary transition-all duration-200 uppercase tracking-wider font-semibold opacity-70 hover:opacity-100" href="#features">Features</a>
             <a className="text-on-surface-variant hover:text-primary transition-all duration-200 uppercase tracking-wider font-semibold opacity-70 hover:opacity-100" href="#how-it-works">How it works</a>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggle}
+              aria-label="Toggle dark mode"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[20px]">{dark ? 'light_mode' : 'dark_mode'}</span>
+            </button>
             <button
               onClick={() => navigate('/login')}
               className="hidden sm:block text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors font-bold uppercase tracking-wider opacity-70 hover:opacity-100"

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { cn } from '../../lib/utils'
 
 const NAV_ITEMS = [
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const { user, logout } = useAuth()
+  const { dark, toggle } = useTheme()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -107,6 +109,13 @@ export function Sidebar() {
           </div>
         </div>
 
+        <button
+          onClick={toggle}
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all duration-200 font-label-md text-label-md"
+        >
+          <span className="material-symbols-outlined text-[20px]">{dark ? 'light_mode' : 'dark_mode'}</span>
+          {dark ? 'Light Mode' : 'Dark Mode'}
+        </button>
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-on-surface-variant hover:bg-error-container/10 hover:text-error transition-all duration-200 font-label-md text-label-md"

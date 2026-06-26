@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerUser } from '../api'
+import { useTheme } from '../contexts/ThemeContext'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { dark, toggle } = useTheme()
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -29,6 +31,14 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary/30 flex items-center justify-center p-6 antialiased overflow-hidden relative">
+      {/* Dark mode toggle */}
+      <button
+        onClick={toggle}
+        aria-label="Toggle dark mode"
+        className="absolute top-5 right-5 z-20 w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary transition-all duration-200"
+      >
+        <span className="material-symbols-outlined text-[20px]">{dark ? 'light_mode' : 'dark_mode'}</span>
+      </button>
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -mr-64 -mt-64"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] -ml-48 -mb-48"></div>
