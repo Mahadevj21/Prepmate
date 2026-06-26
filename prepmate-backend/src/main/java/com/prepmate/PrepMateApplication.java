@@ -15,28 +15,32 @@ public class PrepMateApplication {
     }
 
     @Bean
-    public CommandLineRunner initAdmin(UserRepository userRepository) {
+    public CommandLineRunner initDatabase(
+            UserRepository userRepository,
+            @org.springframework.beans.factory.annotation.Value("${ADMIN_EMAIL:admin@prepmate.com}") String adminEmail,
+            @org.springframework.beans.factory.annotation.Value("${ADMIN_PASSWORD:admin123}") String adminPassword) {
         return args -> {
-            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder =
-                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
 
-            String adminEmail = "mahadev@prepmate.com";
-            java.util.Optional<com.prepmate.model.User> existing = userRepository.findByEmail(adminEmail);
-            if (existing.isPresent()) {
-                com.prepmate.model.User admin = existing.get();
-                // Only update if not already ADMIN to avoid unnecessary DB writes on every restart
-                if (!"ADMIN".equals(admin.getRole())) {
-                    admin.setRole("ADMIN");
-                    admin.setPassword(passwordEncoder.encode("mahadev123"));
-                    userRepository.save(admin);
-                }
-            } else {
+            // Seed Admin User
+            if (userRepository.findByEmail(adminEmail).isEmpty()) {
                 com.prepmate.model.User admin = new com.prepmate.model.User();
-                admin.setName("Mahadev");
+                admin.setName("System Admin");
                 admin.setEmail(adminEmail);
-                admin.setPassword(passwordEncoder.encode("mahadev123"));
+                admin.setPassword(passwordEncoder.encode(adminPassword));
                 admin.setRole("ADMIN");
                 userRepository.save(admin);
+            }
+
+            // Seed Guest User for Sandbox
+            String guestEmail = "guest@prepmate.com";
+            if (userRepository.findByEmail(guestEmail).isEmpty()) {
+                com.prepmate.model.User guest = new com.prepmate.model.User();
+                guest.setName("Sandbox Guest");
+                guest.setEmail(guestEmail);
+                guest.setPassword(passwordEncoder.encode("password123"));
+                guest.setRole("USER");
+                userRepository.save(guest);
             }
         };
     }
